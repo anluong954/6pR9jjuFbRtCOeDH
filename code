@@ -1,9 +1,12 @@
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-from sklearn.metrics import precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, f1_score
 from sklearn.feature_selection import RFE
-from sklearn.preprocessing import StandardScaler
+import xgboost as xgb
 
 url = "https://drive.google.com/uc?id=1KWE3J0uU_sFIJnZ74Id3FDBcejELI7FD"
 df = pd.read_csv(url)
@@ -20,35 +23,79 @@ print(df.info())
 # Pre-process Data
 x = df[['X1', 'X2', 'X3', 'X4', 'X5', 'X6']]
 y = df['Y']
+# decision tree, K nearest, X boost
 
-# Since accuracy and f1-score looks to be low, want to hyper-parameter tuning
-# model
-model = RandomForestClassifier(n_estimators=100, random_state=42)
+# Random Forest Classifier model
+rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
 # feature selection
-selector = RFE(estimator=model, n_features_to_select=3)
-x_selected = selector.fit_transform(x, y)
-
+rf_selector = RFE(estimator=rf_model, n_features_to_select=3)
+# fit RFE
+rf_selected = rf_selector.fit_transform(x, y)
 # split the data
-X_train, X_test, y_train, y_test = train_test_split(x_selected, y, test_size = 0.3, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(rf_selected, y, test_size = 0.3, random_state=42)
+rf_model.fit(X_train, y_train)
+rf_y_pred = rf_model.predict(X_test)
 
-# train model
-model.fit(X_train, y_train)
-
-# prediction
-y_pred = model.predict(X_test)
-
-# Evaluate model
-accuracy = accuracy_score(y_test, y_pred)
-confusion = confusion_matrix(y_test, y_pred)
-class_report = classification_report(y_test, y_pred)
-
-# looking for F1 score (F1 score is the average of precision and recall)
-f1_score = f1_score(y_test, y_pred)
-print("F1 Score:")
-print(f1_score)
-print("Results:")
-print(f"Accuracy: {accuracy:.4f}")
-#print('Confusion Matrix: ')
-#print(confusion)
+# Evaluate Random Forest Model
+rf_accuracy = accuracy_score(y_test, rf_y_pred)
+rf_f1_score = f1_score(y_test, rf_y_pred)
+print("Random Forest Classifier Results:")
+print(f"Accuracy: {rf_accuracy:.4f}")
+print(f"F1 Score: {rf_f1_score:.4f}")
 print('Classification Report:')
-print(class_report)
+print(classification_report(y_test, rf_y_pred))
+
+# Decision Tree Classifier
+dt_model = DecisionTreeClassifier(random_state=42)
+# feature selection
+dt_selector = RFE(estimator=dt_model, n_features_to_select=3)
+# fit RFE
+dt_selected = dt_selector.fit_transform(x, y)
+# split the data
+X_train, X_test, y_train, y_test = train_test_split(dt_selected, y, test_size = 0.3, random_state=42)
+dt_model.fit(X_train, y_train)
+dt_y_pred = dt_model.predict(X_test)
+
+# Evaluate Decision Tree
+dt_accuracy = accuracy_score(y_test, dt_y_pred)
+dt_f1_score = f1_score(y_test, dt_y_pred)
+print("Decision Tree Results:")
+print(f"Accuracy: {dt_accuracy:.4f}")
+print(f"F1 Score: {dt_f1_score:.4f}")
+print('Classification Report:')
+print(classification_report(y_test, dt_y_pred))
+
+# K-Nearest Neighbors Classifier
+knn_model = KNeighborsClassifier()
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size = 0.3, random_state=42)
+knn_model.fit(X_train, y_train)
+knn_y_pred = knn_model.predict(X_test)
+
+# Evaluate KNN
+knn_accuracy = accuracy_score(y_test, knn_y_pred)
+knn_f1_score = f1_score(y_test, knn_y_pred)
+print("K-Nearest Neighbors Results:")
+print(f"Accuracy: {knn_accuracy:.4f}")
+print(f"F1 Score: {knn_f1_score:.4f}")
+print('Classification Report:')
+print(classification_report(y_test, knn_y_pred))
+
+# XGBoost Classifier
+xgb_model = xgb.XGBClassifier()
+# feature Selection
+xg_selector = RFE(estimator=xgb_model, n_features_to_select=3)
+# fit RFE
+xg_selected = xg_selector.fit_transform(x, y)
+# split the data
+X_train, X_test, y_train, y_test = train_test_split(xg_selected, y, test_size = 0.3, random_state=42)
+xgb_model.fit(X_train, y_train)
+xgb_y_pred = xgb_model.predict(X_test)
+
+# Evaluate XGBoost
+xgb_accuracy = accuracy_score(y_test, xgb_y_pred)
+xgb_f1_score = f1_score(y_test, xgb_y_pred)
+print("XGBoost Results:")
+print(f"Accuracy: {xgb_accuracy:.4f}")
+print(f"F1 Score: {xgb_f1_score:.4f}")
+print('Classification Report:')
+print(classification_report(y_test, xgb_y_pred))
