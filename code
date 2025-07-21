@@ -6,10 +6,13 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, f1_score
 from sklearn.feature_selection import RFE
+from sklearn import svm
 import xgboost as xgb
+
 
 url = "https://drive.google.com/uc?id=1KWE3J0uU_sFIJnZ74Id3FDBcejELI7FD"
 df = pd.read_csv(url)
+print(df.head())
 print(df.info())
 
 # Y = target attribute (Y) with values indicating 0 (unhappy) and 1 (happy) customers
@@ -23,6 +26,9 @@ print(df.info())
 # Pre-process Data
 x = df[['X1', 'X2', 'X3', 'X4', 'X5', 'X6']]
 y = df['Y']
+# splitting data original
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+
 # decision tree, K nearest, X boost
 
 # Random Forest Classifier model
@@ -99,3 +105,18 @@ print(f"Accuracy: {xgb_accuracy:.4f}")
 print(f"F1 Score: {xgb_f1_score:.4f}")
 print('Classification Report:')
 print(classification_report(y_test, xgb_y_pred))
+
+# svm
+svm_model = svm.SVC()
+# training the data
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.3, random_state=42)
+svm_model.fit(X_train, y_train)
+svm_y_pred = svm_model.predict(X_test)
+# Evaluate SVM
+svm_accuracy = accuracy_score(y_test, svm_y_pred)
+svm_f1_score = f1_score(y_test, svm_y_pred)
+print("SVM Results:")
+print(f"Accuracy: {svm_accuracy:.4f}")
+print(f"F1 Score: {svm_f1_score:.4f}")
+print('Classification Report:')
+print(classification_report(y_test, svm_y_pred))
